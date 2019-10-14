@@ -26,10 +26,9 @@ class DictionaryModel extends ChangeNotifier {
     _connect()
         .then((void res) => database.query(TABLE_NAME))
         .then((List<Map<String, dynamic>> wordMaps) {
-      _dictionary = List
-          .generate(
-          wordMaps.length, (int index) => Word.fromMap(wordMaps[index]))
-        ..sort(_sort);
+      _dictionary = List.generate(
+          wordMaps.length, (int index) => Word.fromMap(wordMaps[index]));
+      sort();
       notifyListeners();
     });
   }
@@ -61,18 +60,16 @@ class DictionaryModel extends ChangeNotifier {
   Future<void> know(Word word) async {
     word.increment();
     await update(word);
-    _dictionary.sort(_sort);
   }
 
   Future<void> dontKnow(Word word) async {
     word.decrement();
     await update(word);
-    _dictionary.sort(_sort);
   }
 
   Future<void> update(Word word) async {
-    await database.update(
-        TABLE_NAME, word.toMap(), where: 'id = ?', whereArgs: [word.id]);
+    await database.update(TABLE_NAME, word.toMap(),
+        where: 'id = ?', whereArgs: [word.id]);
     notifyListeners();
   }
 
@@ -81,11 +78,13 @@ class DictionaryModel extends ChangeNotifier {
     return list;
   }
 
-  int _sort(Word a, Word b) {
-    final scoreSubtraction = a.score - b.score;
-    if (scoreSubtraction == 0) {
-      return b.id - a.id;
-    }
-    return scoreSubtraction;
+  void sort() {
+    _dictionary.sort((a, b) {
+      final scoreSubtraction = a.score - b.score;
+      if (scoreSubtraction == 0) {
+        return b.id - a.id;
+      }
+      return scoreSubtraction;
+    });
   }
 }

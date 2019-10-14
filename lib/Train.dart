@@ -19,6 +19,7 @@ class _TrainState extends State<Train> {
   }
 
   Widget _last(BuildContext context) {
+    Provider.of<DictionaryModel>(context).sort();
     return Center(
       child: RaisedButton(
         child: Text('go back'),
@@ -94,7 +95,6 @@ class _TrainState extends State<Train> {
                   child: Container(
                     width: 200,
                     height: 200,
-                    child: Card(),
                   ),
                 )
               : _renderCard(words[_current + 1]),
@@ -145,7 +145,7 @@ class _TrainState extends State<Train> {
 
   Widget _buildBody(BuildContext context) {
     final List<Word> words =
-        Provider.of<DictionaryModel>(context, listen: false).words;
+        Provider.of<DictionaryModel>(context, listen: false).words.take(10).toList();
     if (words.length == 0) {
       return _empty();
     }
