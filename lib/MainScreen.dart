@@ -13,10 +13,10 @@ class MainScreen extends StatelessWidget {
             tooltip: 'Train',
             onPressed: () => Navigator.pushNamed(context, 'train'),
           ),
-          IconButton( // TODO: remove
+          /*IconButton( // TODO: remove
               icon: Icon(Icons.score),
               onPressed: () => Navigator.pushNamed(context, 'tut'),
-          )
+          )*/
         ],
       ),
       body: WordsList(),

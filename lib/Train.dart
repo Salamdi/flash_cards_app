@@ -3,8 +3,9 @@ import 'package:flash_cards/Word.dart';
 import 'package:provider/provider.dart';
 import 'package:flash_cards/DictionaryModel.dart';
 
-class Train extends StatefulWidget {
+const DROP_ZONE_WIDTH = 80.0;
 
+class Train extends StatefulWidget {
   _TrainState createState() => _TrainState();
 }
 
@@ -28,52 +29,128 @@ class _TrainState extends State<Train> {
     );
   }
 
-  Widget _default(BuildContext context, List<Word> words) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        Text(
-          words[_current].origin,
-          style: Theme.of(context).primaryTextTheme.headline,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            RaisedButton(
-              color: Colors.redAccent,
-              child: Icon(Icons.close, color: Colors.white,),
-              onPressed: () {
-                Provider.of<DictionaryModel>(context, listen: false).dontKnow(words[_current]);
-                setState(() {
-                  _current++;
-                });
-              },
+  Widget _renderCard(Word word) {
+    return Container(
+      padding: const EdgeInsets.only(bottom: DROP_ZONE_WIDTH),
+      child: Container(
+        width: 200.0,
+        height: 200.0,
+        child: Card(
+          child: Center(
+            child: Text(
+              word.origin,
+              style: Theme.of(context).primaryTextTheme.headline,
             ),
-            RaisedButton(
-              child: Icon(Icons.done, color: Colors.white,),
-              color: Colors.greenAccent,
-              onPressed: () {
-                Provider.of<DictionaryModel>(context, listen: false).know(words[_current]);
-                setState(() {
-                  _current++;
-                });
-              },
-            ),
-          ],
+          ),
         ),
-      ],
+      ),
     );
   }
 
+  Widget _default(BuildContext context, List<Word> words) {
+    return Stack(children: [
+      Row(
+        children: <Widget>[
+          Expanded(
+            child: DragTarget(
+              builder: (context, candidateData, rejectedData) {
+                return Container();
+              },
+              onAccept: (data) {
+                Provider.of<DictionaryModel>(context, listen: false)
+                    .dontKnow(words[_current]);
+                setState(() {
+                  _current++;
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: Container(),
+          ),
+          Expanded(
+            child: DragTarget(
+              builder: (context, candidateData, rejectedData) {
+                return Container();
+              },
+              onAccept: (data) {
+                Provider.of<DictionaryModel>(context, listen: false)
+                    .know(words[_current]);
+                setState(() {
+                  _current++;
+                });
+              },
+            ),
+          )
+        ],
+      ),
+      Center(
+        child: Draggable(
+          child: _renderCard(words[_current]),
+          feedback: _renderCard(words[_current]),
+          childWhenDragging: _current == words.length - 1
+              ? Container(
+                  padding: EdgeInsets.only(bottom: DROP_ZONE_WIDTH),
+                  child: Container(
+                    width: 200,
+                    height: 200,
+                    child: Card(),
+                  ),
+                )
+              : _renderCard(words[_current + 1]),
+        ),
+      ),
+      Positioned(
+        bottom: DROP_ZONE_WIDTH / 2,
+        right: 0,
+        left: 0,
+        child: Container(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              RaisedButton(
+                color: Colors.redAccent,
+                child: Icon(
+                  Icons.close,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  Provider.of<DictionaryModel>(context, listen: false)
+                      .dontKnow(words[_current]);
+                  setState(() {
+                    _current++;
+                  });
+                },
+              ),
+              RaisedButton(
+                child: Icon(
+                  Icons.done,
+                  color: Colors.white,
+                ),
+                color: Colors.greenAccent,
+                onPressed: () {
+                  Provider.of<DictionaryModel>(context, listen: false)
+                      .know(words[_current]);
+                  setState(() {
+                    _current++;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    ]);
+  }
+
   Widget _buildBody(BuildContext context) {
-    final List<Word> words = Provider.of<DictionaryModel>(context, listen: false).words.take(10).toList();
+    final List<Word> words =
+        Provider.of<DictionaryModel>(context, listen: false).words;
     if (words.length == 0) {
       return _empty();
     }
 
-    return _current == words.length
-        ? _last(context)
-        : _default(context, words);
+    return _current == words.length ? _last(context) : _default(context, words);
   }
 
   @override

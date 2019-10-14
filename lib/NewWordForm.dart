@@ -12,6 +12,7 @@ class NewWordForm extends StatefulWidget {
 
 class _NewWordFormState extends State<NewWordForm> {
   final _newWordFormKey = GlobalKey<FormState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   String _word = '';
   String _translation = '';
   String _sample = '';
@@ -30,6 +31,7 @@ class _NewWordFormState extends State<NewWordForm> {
     return Consumer<DictionaryModel>(
       builder: (context, dictionary, child) {
         return Scaffold(
+          key: _scaffoldKey,
           appBar: AppBar(
             title: Text('Add a New Word'),
           ),
@@ -84,6 +86,16 @@ class _NewWordFormState extends State<NewWordForm> {
                     textInputAction: TextInputAction.done,
                     focusNode: _sampleFocus,
                     onFieldSubmitted: (value) {
+                      final form = _newWordFormKey.currentState;
+                      if (form.validate()) {
+                        dictionary.add(Word(
+                            origin: _word,
+                            translation: _translation,
+                            example: _sample));
+                        _scaffoldKey.currentState.showSnackBar(
+                            SnackBar(content: Text('Added New Word')));
+                        form.reset();
+                      }
                       _sampleFocus.unfocus();
                     },
                   ),
