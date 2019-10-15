@@ -1,3 +1,4 @@
+import 'package:flash_cards/EditForm.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_cards/DictionaryModel.dart';
 import 'package:flash_cards/MainScreen.dart';
@@ -27,6 +28,7 @@ class FlashCardsApp extends StatelessWidget {
           'add_word': (context) => NewWordForm(),
           'word_details': (context) => WordDetails(),
           'train': (context) => Train(),
+          'edit': (context) => EditForm(),
           'tut': (context) => Tutorial(),
         },
       ),

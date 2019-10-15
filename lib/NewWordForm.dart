@@ -6,6 +6,10 @@ import 'package:provider/provider.dart';
 typedef void AddWord(Word word);
 
 class NewWordForm extends StatefulWidget {
+  final Word word;
+
+  NewWordForm({this.word});
+
   @override
   _NewWordFormState createState() => _NewWordFormState();
 }
@@ -13,9 +17,13 @@ class NewWordForm extends StatefulWidget {
 class _NewWordFormState extends State<NewWordForm> {
   final _newWordFormKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  String _word = '';
-  String _translation = '';
-  String _sample = '';
+  Word _word;
+
+  @override
+  void initState() {
+    _word = widget.word ?? Word();
+    super.initState();
+  }
 
   final FocusNode _wordFocus = FocusNode();
   final FocusNode _translationFocus = FocusNode();
@@ -26,6 +34,21 @@ class _NewWordFormState extends State<NewWordForm> {
     FocusScope.of(context).requestFocus(to);
   }
 
+  _handleSubmit(DictionaryModel dictionary) {
+    final form = _newWordFormKey.currentState;
+    if (form.validate()) {
+      if (_word.id != null) {
+        dictionary.update(_word);
+      } else {
+        dictionary.add(_word);
+        _scaffoldKey.currentState.showSnackBar(
+            SnackBar(content: Text(_word.id == null ? 'The word has been added' : 'The word has been edited')));
+        form.reset();
+      }
+    }
+    _sampleFocus.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<DictionaryModel>(
@@ -33,7 +56,7 @@ class _NewWordFormState extends State<NewWordForm> {
         return Scaffold(
           key: _scaffoldKey,
           appBar: AppBar(
-            title: Text('Add a New Word'),
+            title: Text(_word.id == null ? 'Add a New Word' : 'Edit the Word'),
           ),
           body: Form(
             key: _newWordFormKey,
@@ -43,13 +66,14 @@ class _NewWordFormState extends State<NewWordForm> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
                   TextFormField(
+                    initialValue: _word.origin,
                     onChanged: (value) {
                       setState(() {
-                        _word = value;
+                        _word.origin = value;
                       });
                     },
                     textDirection: TextDirection.rtl,
-                    decoration: InputDecoration(labelText: 'New Word'),
+                    decoration: InputDecoration(labelText: 'Word'),
                     validator: (value) {
                       return value.isEmpty ? 'Required Field' : null;
                     },
@@ -60,9 +84,10 @@ class _NewWordFormState extends State<NewWordForm> {
                     },
                   ),
                   TextFormField(
+                    initialValue: _word.translation,
                     onChanged: (value) {
                       setState(() {
-                        _translation = value;
+                        _word.translation = value;
                       });
                     },
                     decoration: InputDecoration(labelText: 'Word translation'),
@@ -76,70 +101,31 @@ class _NewWordFormState extends State<NewWordForm> {
                     },
                   ),
                   TextFormField(
+                    initialValue: _word.example,
                     onChanged: (value) {
                       setState(() {
-                        _sample = value;
+                        _word.example = value;
                       });
                     },
                     textDirection: TextDirection.rtl,
                     decoration: InputDecoration(labelText: 'Sample Sentense'),
                     textInputAction: TextInputAction.done,
                     focusNode: _sampleFocus,
-                    onFieldSubmitted: (value) {
-                      final form = _newWordFormKey.currentState;
-                      if (form.validate()) {
-                        dictionary.add(Word(
-                            origin: _word,
-                            translation: _translation,
-                            example: _sample));
-                        _scaffoldKey.currentState.showSnackBar(
-                            SnackBar(content: Text('Added New Word')));
-                        form.reset();
-                      }
-                      _sampleFocus.unfocus();
-                    },
+                    onFieldSubmitted: (value) => _handleSubmit(dictionary),
                   ),
-                  AddButton(() {
-                    dictionary.add(Word(
-                        origin: _word,
-                        translation: _translation,
-                        example: _sample));
-                  }),
+                  SafeArea(
+                    child: RaisedButton(
+                      child: Text(_word.id == null ? 'Add' : 'Edit'),
+                      color: Colors.greenAccent,
+                      onPressed: () => _handleSubmit(dictionary),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
         );
       },
-    );
-  }
-}
-
-typedef void EmptyCallback();
-
-class AddButton extends StatelessWidget {
-  final EmptyCallback callback;
-
-  AddButton(this.callback);
-
-  void _handleClick(BuildContext context) {
-    final form = Form.of(context);
-    if (form.validate()) {
-      callback();
-      form.reset();
-      Scaffold.of(context)
-          .showSnackBar(SnackBar(content: Text('Added New Word')));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: RaisedButton(
-        child: Text('Add'),
-        color: Colors.greenAccent,
-        onPressed: () => _handleClick(context),
-      ),
     );
   }
 }

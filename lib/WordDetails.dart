@@ -5,7 +5,6 @@ import 'package:flash_cards/Word.dart';
 import 'package:provider/provider.dart';
 
 class WordDetails extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     final Word word = ModalRoute.of(context).settings.arguments;
@@ -42,16 +41,27 @@ class WordDetails extends StatelessWidget {
               ),
             ),
           ),
-          Center(
-            child: RaisedButton(
+          Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+            RaisedButton(
               color: Colors.redAccent,
-              child: Text('Delete', style: TextStyle(color: Colors.white),),
+              child: Text(
+                'Delete',
+                style: TextStyle(color: Colors.white),
+              ),
               onPressed: () async {
-                await Provider.of<DictionaryModel>(context, listen: false).remove(word.id);
+                await Provider.of<DictionaryModel>(context, listen: false)
+                    .remove(word.id);
                 Navigator.pop(context);
               },
             ),
-          )
+            RaisedButton(
+              color: Colors.greenAccent,
+              child: Text('Edit'),
+              onPressed: () {
+                Navigator.pushNamed(context, 'edit', arguments: word);
+              },
+            ),
+          ])
         ],
       ),
     );
